@@ -35,7 +35,7 @@ import {
 } from './firestoreService';
 import { db, doc, setDoc, updateDoc } from '../lib/firebase';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://backend-tbi5.onrender.com';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://backend-tbi5.onrender.com/api';
 
 // Example fetch request
 export const fetchProblems = async () => {
