@@ -36,7 +36,7 @@ import {
 import { db, doc, setDoc, updateDoc } from '../lib/firebase';
 
 // Ensure API_BASE points to your deployed Render backend URL base (without trailing /api)
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://backend-mpgj.onrender.com';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://backend-tbi5.onrender.com';
 
 function getAuthHeaders(): HeadersInit {
   const token = localStorage.getItem('civicsetu_token') || localStorage.getItem('samaadhaan_token');
