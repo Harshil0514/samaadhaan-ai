@@ -35,22 +35,8 @@ import {
 } from './firestoreService';
 import { db, doc, setDoc, updateDoc } from '../lib/firebase';
 
-// Ensure API_BASE points to your deployed Render backend URL
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://backend-tbi5.onrender.com';
-
-export const api = {
-  // ... other methods
-
-  supportProblem: async (problemId: string, userId?: string) => {
-    return safeFetch(`${API_BASE}/api/problems/${problemId}/support/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify({ user_id: userId || 'usr-citizen-1' }),
-    });
-  },
+// Ensure API_BASE points to your deployed Render backend URL base (without trailing /api)
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://backend-mpgj.onrender.com';
 
 function getAuthHeaders(): HeadersInit {
   const token = localStorage.getItem('civicsetu_token') || localStorage.getItem('samaadhaan_token');
@@ -104,14 +90,13 @@ export const api = {
   // Auth with Firebase & Backend Sync
   async login(identifier: string, password: string): Promise<{ user: User; token: string }> {
     try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
+      const res = await fetch(`${API_BASE}/api/auth/login/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier, email: identifier, phone: identifier, password })
       });
       if (res.ok) {
         const data = await res.json();
-        // Sync user profile to Firestore
         setDoc(doc(db, 'users', data.user.id), data.user, { merge: true }).catch(() => {});
         return data;
       }
@@ -132,7 +117,6 @@ export const api = {
     govt_id_number?: string;
     govt_id_type?: string;
   }): Promise<{ user: User; token: string }> {
-    // 1. Register in Firestore Database
     let firestoreResult: { user: User; token: string } | null = null;
     try {
       firestoreResult = await firestoreRegisterUser(data);
@@ -140,16 +124,14 @@ export const api = {
       console.warn('Firestore direct register note:', err);
     }
 
-    // 2. Also register in backend Express server if accessible
     try {
-      const res = await fetch(`${API_BASE}/auth/register`, {
+      const res = await fetch(`${API_BASE}/api/auth/register/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
       if (res.ok) {
         const backendData = await res.json();
-        // Sync to Firestore
         if (backendData.user) {
           setDoc(doc(db, 'users', backendData.user.id), backendData.user, { merge: true }).catch(() => {});
         }
@@ -168,7 +150,7 @@ export const api = {
   async getMe(): Promise<{ user: User }> {
     const token = localStorage.getItem('civicsetu_token') || localStorage.getItem('samaadhaan_token');
     try {
-      const res = await safeFetch<{ user: User }>(`${API_BASE}/auth/me`, {
+      const res = await safeFetch<{ user: User }>(`${API_BASE}/api/auth/me/`, {
         headers: getAuthHeaders()
       });
       if (res?.user) {
@@ -187,7 +169,7 @@ export const api = {
   },
 
   async switchDemoRole(role: Role): Promise<{ user: User; token: string }> {
-    const res = await fetch(`${API_BASE}/auth/switch-demo`, {
+    const res = await fetch(`${API_BASE}/api/auth/switch-demo/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ role })
@@ -203,7 +185,7 @@ export const api = {
   // Categories & Institutions
   async getCategories(): Promise<Category[]> {
     try {
-      const list = await safeFetch<Category[]>(`${API_BASE}/categories`, undefined, []);
+      const list = await safeFetch<Category[]>(`${API_BASE}/api/categories/`, undefined, []);
       if (list && list.length > 0) return list;
     } catch {
       // Fallback
@@ -213,7 +195,7 @@ export const api = {
 
   async getInstitutions(): Promise<Institution[]> {
     try {
-      const list = await safeFetch<Institution[]>(`${API_BASE}/institutions`, undefined, []);
+      const list = await safeFetch<Institution[]>(`${API_BASE}/api/institutions/`, undefined, []);
       if (list && list.length > 0) return list;
     } catch {
       // Fallback
@@ -222,7 +204,7 @@ export const api = {
   },
 
   async getInstitutionRecommendations(problemId: string): Promise<InstitutionRecommendation[]> {
-    return safeFetch<InstitutionRecommendation[]>(`${API_BASE}/institutions/recommendations/${problemId}`, undefined, []);
+    return safeFetch<InstitutionRecommendation[]>(`${API_BASE}/api/institutions/recommendations/${problemId}/`, undefined, []);
   },
 
   // Problems
@@ -245,7 +227,7 @@ export const api = {
       if (params?.institutionId) query.set('institutionId', params.institutionId);
       if (params?.limit) query.set('limit', params.limit.toString());
 
-      const res = await safeFetch<Problem[]>(`${API_BASE}/problems?${query.toString()}`, {
+      const res = await safeFetch<Problem[]>(`${API_BASE}/api/problems/?${query.toString()}`, {
         headers: getAuthHeaders()
       }, []);
 
@@ -264,7 +246,7 @@ export const api = {
     solutions: SolutionDirection[];
   }> {
     try {
-      const res = await safeFetch<any>(`${API_BASE}/problems/${id}`, {
+      const res = await safeFetch<any>(`${API_BASE}/api/problems/${id}/`, {
         headers: getAuthHeaders()
       });
       if (res && res.id) return res;
@@ -296,7 +278,7 @@ export const api = {
       recommendedClusterId?: string;
     };
   }> {
-    const res = await fetch(`${API_BASE}/ai/preview-analyze`, {
+    const res = await fetch(`${API_BASE}/api/ai/preview-analyze/`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(data)
@@ -316,16 +298,14 @@ export const api = {
     images?: string[];
     cluster_id_to_join?: string;
   }): Promise<{ problem: Problem; ai_analysis: AIAnalysis; solutions: SolutionDirection[] }> {
-    // 1. Create on server backend (runs Gemini & clustering)
     try {
-      const res = await fetch(`${API_BASE}/problems`, {
+      const res = await fetch(`${API_BASE}/api/problems/`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(data)
       });
       if (res.ok) {
         const payload = await res.json();
-        // Persist new problem directly to Firestore
         if (payload.problem) {
           setDoc(doc(db, 'problems', payload.problem.id), payload.problem, { merge: true }).catch(() => {});
         }
@@ -345,28 +325,27 @@ export const api = {
   },
 
   async updateProblem(id: string, updates: Partial<Problem>): Promise<{ problem: Problem }> {
-    // Update both Firestore and server
     firestoreUpdateProblem(id, updates).catch(() => {});
-    return safeFetch<{ problem: Problem }>(`${API_BASE}/problems/${id}`, {
+    return safeFetch<{ problem: Problem }>(`${API_BASE}/api/problems/${id}/`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(updates)
     });
   },
 
-  async supportProblem(id: string): Promise<{ supported: boolean; count: number; new_priority_score?: number }> {
-    // Update Firestore directly for instant persistence
+  async supportProblem(id: string, userId?: string): Promise<{ supported: boolean; count: number; new_priority_score?: number }> {
     firestoreSupportProblem(id).catch(() => {});
-    return safeFetch<{ supported: boolean; count: number; new_priority_score?: number }>(`${API_BASE}/problems/${id}/support`, {
+    return safeFetch<{ supported: boolean; count: number; new_priority_score?: number }>(`${API_BASE}/api/problems/${id}/support/`, {
       method: 'POST',
-      headers: getAuthHeaders()
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ user_id: userId || 'usr-citizen-1' })
     }, { supported: true, count: 1 });
   },
 
   // Problem Clusters
   async getClusters(): Promise<ProblemCluster[]> {
     try {
-      const list = await safeFetch<ProblemCluster[]>(`${API_BASE}/clusters`, undefined, []);
+      const list = await safeFetch<ProblemCluster[]>(`${API_BASE}/api/clusters/`, undefined, []);
       if (list && list.length > 0) return list;
     } catch {
       // Fallback
@@ -375,7 +354,7 @@ export const api = {
   },
 
   async getCluster(id: string): Promise<ProblemCluster & { problems: Problem[] }> {
-    return safeFetch<ProblemCluster & { problems: Problem[] }>(`${API_BASE}/clusters/${id}`);
+    return safeFetch<ProblemCluster & { problems: Problem[] }>(`${API_BASE}/api/clusters/${id}/`);
   },
 
   async createCluster(data: {
@@ -384,7 +363,7 @@ export const api = {
     problem_ids: string[];
     radius_km?: number;
   }): Promise<{ cluster: ProblemCluster }> {
-    return safeFetch<{ cluster: ProblemCluster }>(`${API_BASE}/clusters`, {
+    return safeFetch<{ cluster: ProblemCluster }>(`${API_BASE}/api/clusters/`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(data)
@@ -392,7 +371,7 @@ export const api = {
   },
 
   async updateCluster(id: string, updates: Partial<ProblemCluster>): Promise<{ cluster: ProblemCluster }> {
-    return safeFetch<{ cluster: ProblemCluster }>(`${API_BASE}/clusters/${id}`, {
+    return safeFetch<{ cluster: ProblemCluster }>(`${API_BASE}/api/clusters/${id}/`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(updates)
@@ -406,7 +385,7 @@ export const api = {
       if (params?.status) query.set('status', params.status);
       if (params?.institution_id) query.set('institution_id', params.institution_id);
 
-      const list = await safeFetch<Project[]>(`${API_BASE}/projects?${query.toString()}`, undefined, []);
+      const list = await safeFetch<Project[]>(`${API_BASE}/api/projects/?${query.toString()}`, undefined, []);
       if (list && list.length > 0) return list;
     } catch {
       // Fallback
@@ -416,7 +395,7 @@ export const api = {
 
   async getProject(id: string): Promise<Project> {
     try {
-      const p = await safeFetch<Project>(`${API_BASE}/projects/${id}`);
+      const p = await safeFetch<Project>(`${API_BASE}/api/projects/${id}/`);
       if (p && p.id) return p;
     } catch {
       // Fallback
@@ -428,7 +407,7 @@ export const api = {
 
   async createProject(data: Partial<Project>): Promise<{ project: Project }> {
     const created = await firestoreCreateProject(data);
-    safeFetch<{ project: Project }>(`${API_BASE}/projects`, {
+    safeFetch<{ project: Project }>(`${API_BASE}/api/projects/`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(data)
@@ -437,7 +416,7 @@ export const api = {
   },
 
   async updateProject(id: string, updates: Partial<Project>): Promise<{ project: Project }> {
-    const res = await safeFetch<{ project: Project }>(`${API_BASE}/projects/${id}`, {
+    const res = await safeFetch<{ project: Project }>(`${API_BASE}/api/projects/${id}/`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(updates)
@@ -447,7 +426,7 @@ export const api = {
   },
 
   async updateMilestone(id: string, updates: { status?: string; title?: string; description?: string }): Promise<any> {
-    return safeFetch<any>(`${API_BASE}/milestones/${id}`, {
+    return safeFetch<any>(`${API_BASE}/api/milestones/${id}/`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(updates)
@@ -457,7 +436,7 @@ export const api = {
   // Solution Directions
   async getSolutions(problemId: string): Promise<SolutionDirection[]> {
     try {
-      const list = await safeFetch<SolutionDirection[]>(`${API_BASE}/problems/${problemId}/solutions`, undefined, []);
+      const list = await safeFetch<SolutionDirection[]>(`${API_BASE}/api/problems/${problemId}/solutions/`, undefined, []);
       if (list && list.length > 0) return list;
     } catch {
       // Fallback
@@ -467,7 +446,7 @@ export const api = {
 
   async voteSolution(solutionId: string): Promise<{ votes: number }> {
     firestoreVoteSolution(solutionId).catch(() => {});
-    return safeFetch<{ votes: number }>(`${API_BASE}/solutions/${solutionId}/vote`, {
+    return safeFetch<{ votes: number }>(`${API_BASE}/api/solutions/${solutionId}/vote/`, {
       method: 'POST',
       headers: getAuthHeaders()
     }, { votes: 1 });
@@ -475,7 +454,7 @@ export const api = {
 
   async updateSolutionStatus(solutionId: string, status: string): Promise<SolutionDirection> {
     updateDoc(doc(db, 'solutions', solutionId), { status }).catch(() => {});
-    return safeFetch<SolutionDirection>(`${API_BASE}/solutions/${solutionId}/status`, {
+    return safeFetch<SolutionDirection>(`${API_BASE}/api/solutions/${solutionId}/status/`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify({ status })
@@ -485,7 +464,7 @@ export const api = {
   // Analytics
   async getAnalyticsOverview(): Promise<AnalyticsOverview> {
     try {
-      const data = await safeFetch<AnalyticsOverview>(`${API_BASE}/analytics/overview`);
+      const data = await safeFetch<AnalyticsOverview>(`${API_BASE}/api/analytics/overview/`);
       if (data && data.total_problems > 0) return data;
     } catch {
       // Fallback
@@ -494,19 +473,19 @@ export const api = {
   },
 
   async getAnalyticsCategories(): Promise<{ name: string; count: number }[]> {
-    return safeFetch<{ name: string; count: number }[]>(`${API_BASE}/analytics/categories`, undefined, []);
+    return safeFetch<{ name: string; count: number }[]>(`${API_BASE}/api/analytics/categories/`, undefined, []);
   },
 
   async getAnalyticsPriority(): Promise<{ range: string; count: number; fill: string }[]> {
-    return safeFetch<{ range: string; count: number; fill: string }[]>(`${API_BASE}/analytics/priority`, undefined, []);
+    return safeFetch<{ range: string; count: number; fill: string }[]>(`${API_BASE}/api/analytics/priority/`, undefined, []);
   },
 
   async getAnalyticsTrends(): Promise<any[]> {
-    return safeFetch<any[]>(`${API_BASE}/analytics/trends`, undefined, []);
+    return safeFetch<any[]>(`${API_BASE}/api/analytics/trends/`, undefined, []);
   },
 
   async getAnalyticsImpact(): Promise<any> {
-    return safeFetch<any>(`${API_BASE}/analytics/impact`, undefined, {});
+    return safeFetch<any>(`${API_BASE}/api/analytics/impact/`, undefined, {});
   },
 
   // Notifications
@@ -536,12 +515,12 @@ export const api = {
       headers: getAuthHeaders()
     }, undefined);
   },
+
   // Seed Reset
   async resetDatabase(): Promise<{ success: boolean; message: string }> {
-    return safeFetch<{ success: boolean; message: string }>(`${API_BASE}/seed/reset`, {
+    return safeFetch<{ success: boolean; message: string }>(`${API_BASE}/api/seed/reset/`, {
       method: 'POST',
       headers: getAuthHeaders()
     });
   }
 };
-
