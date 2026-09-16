@@ -42,22 +42,15 @@ export const api = {
   // ... other methods
 
   supportProblem: async (problemId: string, userId?: string) => {
-    // 1. Send actual POST request to backend
-    const response = await fetch(`${API_BASE}/api/problems/${problemId}/support`, {
+    return safeFetch(`${API_BASE}/api/problems/${problemId}/support/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
       body: JSON.stringify({ user_id: userId || 'usr-citizen-1' }),
     });
-
-    if (!response.ok) {
-      throw new Error(`Failed to support problem. Server returned status ${response.status}`);
-    }
-
-    return await response.json();
   },
-};
 
 function getAuthHeaders(): HeadersInit {
   const token = localStorage.getItem('civicsetu_token') || localStorage.getItem('samaadhaan_token');
