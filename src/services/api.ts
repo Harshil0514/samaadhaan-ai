@@ -35,12 +35,28 @@ import {
 } from './firestoreService';
 import { db, doc, setDoc, updateDoc } from '../lib/firebase';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://backend-tbi5.onrender.com/api';
+// Ensure API_BASE points to your deployed Render backend URL
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://backend-tbi5.onrender.com';
 
-// Example fetch request
-export const fetchProblems = async () => {
-  const response = await fetch(`${API_BASE_URL}/api/problems`);
-  return response.json();
+export const api = {
+  // ... other methods
+
+  supportProblem: async (problemId: string, userId?: string) => {
+    // 1. Send actual POST request to backend
+    const response = await fetch(`${API_BASE}/api/problems/${problemId}/support`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ user_id: userId || 'usr-citizen-1' }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to support problem. Server returned status ${response.status}`);
+    }
+
+    return await response.json();
+  },
 };
 
 function getAuthHeaders(): HeadersInit {
@@ -503,7 +519,7 @@ export const api = {
   // Notifications
   async getNotifications(): Promise<Notification[]> {
     try {
-      const list = await safeFetch<Notification[]>(`${API_BASE}/notifications`, {
+      const list = await safeFetch<Notification[]>(`${API_BASE}/api/notifications/`, {
         headers: getAuthHeaders()
       }, []);
       if (list && list.length > 0) return list;
@@ -515,19 +531,18 @@ export const api = {
 
   async markNotificationRead(id: string): Promise<void> {
     updateDoc(doc(db, 'notifications', id), { is_read: true }).catch(() => {});
-    await safeFetch(`${API_BASE}/notifications/${id}/read`, {
+    await safeFetch(`${API_BASE}/api/notifications/${id}/read/`, {
       method: 'PUT',
       headers: getAuthHeaders()
     }, undefined);
   },
 
   async markAllNotificationsRead(): Promise<void> {
-    await safeFetch(`${API_BASE}/notifications/read-all`, {
+    await safeFetch(`${API_BASE}/api/notifications/read-all/`, {
       method: 'PUT',
       headers: getAuthHeaders()
     }, undefined);
   },
-
   // Seed Reset
   async resetDatabase(): Promise<{ success: boolean; message: string }> {
     return safeFetch<{ success: boolean; message: string }>(`${API_BASE}/seed/reset`, {
