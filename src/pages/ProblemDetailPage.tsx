@@ -63,21 +63,28 @@ export const ProblemDetailPage: React.FC<ProblemDetailPageProps> = ({ problemId,
   }, [problemId]);
 
   const handleSupport = async () => {
-    if (!problem) return;
-    try {
-      const res = await api.supportProblem(problem.id);
-      setIsSupported(res.supported);
-      setSupportsCount(res.count);
-      if (res.new_priority_score) {
-        setProblem(prev => prev ? { ...prev, priority_score: res.new_priority_score! } : null);
-      }
-      if (res.supported) {
-        confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
-      }
-    } catch {
-      // Ignore
+  if (!problem || !user) {
+    alert("Please log in to support this challenge!");
+    return;
+  }
+  
+  try {
+    // Pass user.id or user token to the API service
+    const res = await api.supportProblem(problem.id, user.id);
+    
+    setIsSupported(res.supported);
+    setSupportsCount(res.count);
+    if (res.new_priority_score) {
+      setProblem(prev => prev ? { ...prev, priority_score: res.new_priority_score! } : null);
     }
-  };
+    if (res.supported) {
+      confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+    }
+  } catch (err: any) {
+    console.error('Failed to update support in Supabase:', err);
+    alert(err.response?.data?.detail || 'Could not register your support. Check backend logs.');
+  }
+};
 
   const handleAssignInstitution = async (instId: string, instName: string) => {
     if (!problem) return;
