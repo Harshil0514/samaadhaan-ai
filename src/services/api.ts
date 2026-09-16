@@ -35,7 +35,13 @@ import {
 } from './firestoreService';
 import { db, doc, setDoc, updateDoc } from '../lib/firebase';
 
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://backend-mpgj.onrender.com';
+
+// Example fetch request
+export const fetchProblems = async () => {
+  const response = await fetch(`${API_BASE_URL}/api/problems`);
+  return response.json();
+};
 
 function getAuthHeaders(): HeadersInit {
   const token = localStorage.getItem('civicsetu_token') || localStorage.getItem('samaadhaan_token');
