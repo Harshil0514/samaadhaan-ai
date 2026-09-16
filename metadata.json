@@ -1,0 +1,6 @@
+{
+  "name": "CIVICSETU",
+  "description": "AI-powered societal innovation platform converting citizen-reported community problems into real-world innovation projects with universities and experts.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

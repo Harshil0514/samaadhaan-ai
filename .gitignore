@@ -1,0 +1,15 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Python FastAPI backend
+backend/samaadhaan.db
+backend/__pycache__/
+backend/*.pyc
+.venv/
+venv/

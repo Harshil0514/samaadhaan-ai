@@ -1,0 +1,130 @@
+{
+  "entities": {
+    "User": {
+      "collection": "users",
+      "fields": {
+        "id": { "type": "string", "description": "User identifier" },
+        "name": { "type": "string", "description": "Full name" },
+        "email": { "type": "string", "description": "Email address" },
+        "role": { "type": "string", "description": "User persona role (citizen, institution, expert, admin)" },
+        "organization": { "type": "string", "description": "Affiliated organization or institution" },
+        "phone": { "type": "string", "description": "Contact phone number" },
+        "profile_image": { "type": "string", "description": "Profile picture URL" },
+        "created_at": { "type": "string", "description": "Creation timestamp" }
+      }
+    },
+    "Problem": {
+      "collection": "problems",
+      "fields": {
+        "id": { "type": "string", "description": "Problem identifier" },
+        "title": { "type": "string", "description": "Problem title" },
+        "description": { "type": "string", "description": "Detailed problem description" },
+        "category_id": { "type": "string", "description": "Category identifier" },
+        "category_name": { "type": "string", "description": "Category name" },
+        "status": { "type": "string", "description": "Current lifecycle status" },
+        "urgency": { "type": "string", "description": "Urgency rating" },
+        "latitude": { "type": "number", "description": "GPS Latitude" },
+        "longitude": { "type": "number", "description": "GPS Longitude" },
+        "address": { "type": "string", "description": "Geocoded address" },
+        "created_by": { "type": "string", "description": "User ID who reported" },
+        "author_name": { "type": "string", "description": "Reporter name" },
+        "author_email": { "type": "string", "description": "Reporter email" },
+        "priority_score": { "type": "number", "description": "AI calculated priority score (0-100)" },
+        "severity_score": { "type": "number", "description": "Severity index" },
+        "supports_count": { "type": "number", "description": "Count of community citizen supports" },
+        "images": { "type": "array", "description": "Array of image URLs" },
+        "ai_analysis": { "type": "object", "description": "AI analysis metadata" },
+        "assigned_institution_id": { "type": "string", "description": "Assigned institution ID" },
+        "assigned_institution_name": { "type": "string", "description": "Assigned institution name" },
+        "project_id": { "type": "string", "description": "Associated project ID" },
+        "created_at": { "type": "string", "description": "Creation timestamp" },
+        "updated_at": { "type": "string", "description": "Last update timestamp" }
+      }
+    },
+    "Category": {
+      "collection": "categories",
+      "fields": {
+        "id": { "type": "string", "description": "Category ID" },
+        "name": { "type": "string", "description": "Category display name" },
+        "description": { "type": "string", "description": "Category description" },
+        "icon": { "type": "string", "description": "Lucide icon key" }
+      }
+    },
+    "Institution": {
+      "collection": "institutions",
+      "fields": {
+        "id": { "type": "string", "description": "Institution ID" },
+        "name": { "type": "string", "description": "Institution name" },
+        "description": { "type": "string", "description": "Institution bio" },
+        "location": { "type": "string", "description": "Physical address" },
+        "latitude": { "type": "number", "description": "Latitude" },
+        "longitude": { "type": "number", "description": "Longitude" },
+        "contact_email": { "type": "string", "description": "Email address" },
+        "website": { "type": "string", "description": "Website URL" },
+        "expertise": { "type": "array", "description": "List of domains and keywords" },
+        "active_projects_count": { "type": "number", "description": "Count of active projects" },
+        "completed_projects_count": { "type": "number", "description": "Count of completed projects" }
+      }
+    },
+    "Project": {
+      "collection": "projects",
+      "fields": {
+        "id": { "type": "string", "description": "Project ID" },
+        "title": { "type": "string", "description": "Project title" },
+        "description": { "type": "string", "description": "Project overview" },
+        "problem_id": { "type": "string", "description": "Linked problem ID" },
+        "institution_id": { "type": "string", "description": "Responsible institution ID" },
+        "institution_name": { "type": "string", "description": "Institution name" },
+        "status": { "type": "string", "description": "Project stage" },
+        "progress": { "type": "number", "description": "Completion percentage (0-100)" },
+        "start_date": { "type": "string", "description": "Project start date" },
+        "expected_completion": { "type": "string", "description": "Target completion date" },
+        "milestones": { "type": "array", "description": "List of milestones" },
+        "members": { "type": "array", "description": "List of team members" },
+        "prototype_info": { "type": "string", "description": "R&D Prototype description" }
+      }
+    },
+    "ProblemCluster": {
+      "collection": "problem_clusters",
+      "fields": {
+        "id": { "type": "string", "description": "Cluster ID" },
+        "name": { "type": "string", "description": "Cluster title" },
+        "category_id": { "type": "string", "description": "Category ID" },
+        "center_latitude": { "type": "number", "description": "Cluster center latitude" },
+        "center_longitude": { "type": "number", "description": "Cluster center longitude" },
+        "radius_km": { "type": "number", "description": "Coverage radius in kilometers" },
+        "total_reports": { "type": "number", "description": "Total correlated citizen reports" },
+        "priority_score": { "type": "number", "description": "Cluster priority rating" },
+        "status": { "type": "string", "description": "Status" },
+        "problem_ids": { "type": "array", "description": "List of member problem IDs" }
+      }
+    },
+    "SolutionDirection": {
+      "collection": "solutions",
+      "fields": {
+        "id": { "type": "string", "description": "Solution ID" },
+        "problem_id": { "type": "string", "description": "Linked problem ID" },
+        "title": { "type": "string", "description": "Solution headline" },
+        "description": { "type": "string", "description": "Technical approach" },
+        "domain": { "type": "string", "description": "Domain area" },
+        "feasibility_score": { "type": "number", "description": "Feasibility score (0-100)" },
+        "estimated_timeframe": { "type": "string", "description": "Timeframe" },
+        "key_technologies": { "type": "array", "description": "Technologies" },
+        "status": { "type": "string", "description": "Status" },
+        "votes": { "type": "number", "description": "Expert & citizen votes" }
+      }
+    },
+    "Notification": {
+      "collection": "notifications",
+      "fields": {
+        "id": { "type": "string", "description": "Notification ID" },
+        "user_id": { "type": "string", "description": "Recipient user ID" },
+        "title": { "type": "string", "description": "Subject" },
+        "message": { "type": "string", "description": "Body message" },
+        "type": { "type": "string", "description": "Notification category" },
+        "is_read": { "type": "boolean", "description": "Read status" },
+        "created_at": { "type": "string", "description": "Timestamp" }
+      }
+    }
+  }
+}
